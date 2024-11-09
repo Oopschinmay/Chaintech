@@ -1,43 +1,38 @@
-// Login.js
-import React, { useState } from 'react';
+// Account.js
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-//import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-//{isRegistering ? "Already have an account? Log in" : "Need an account? Register"}
-export default function Login() {
+
+function Account() {
     const navigate = useNavigate();
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const handleLogin = (e) => {
+    useEffect(() => {
+        const authStatus = localStorage.getItem('isAuthenticated');
+        if (authStatus !== 'true') {
+            navigate('/login');
+        }
+
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (userInfo) {
+            setUsername(userInfo.username);
+            setEmail(userInfo.email);
+            setPassword(userInfo.password);
+        }
+    }, [navigate]);
+
+    const handleSave = (e) => {
         e.preventDefault();
-
-        // Retrieve user data from localStorage
-        const storedUserData = localStorage.getItem(username);
-
-        if (!storedUserData) {
-            setMessage('User does not exist. Please register first.');
-            return;
-        }
-
-        const userData = JSON.parse(storedUserData);
-
-        // Verify password
-        if (userData.password === password) {
-            localStorage.setItem('isAuthenticated', 'true');
-            setMessage('Login successful!');
-            setUsername('');
-            setPassword('');
-            navigate('/account');
-        } else {
-            setMessage('Incorrect password. Please try again.');
-        }
+        localStorage.setItem('userInfo', JSON.stringify({ username, email, password }));
+        setMessage('Account information updated successfully!');
     };
 
     return (
         <div className="max-w-md mx-auto p-8 border rounded-lg shadow-lg bg-white mt-10">
-            <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <h2 className="text-2xl font-bold mb-6 text-center">Account Information</h2>
+            <form onSubmit={handleSave} className="space-y-4">
                 <div>
                     <label className="block font-semibold mb-1">Username:</label>
                     <input
@@ -45,6 +40,16 @@ export default function Login() {
                         className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block font-semibold mb-1">Email:</label>
+                    <input
+                        type="email"
+                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>
@@ -62,10 +67,12 @@ export default function Login() {
                     type="submit"
                     className="w-full py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600"
                 >
-                    Login
+                    Save Changes
                 </button>
             </form>
-            {message && <p className="mt-4 text-center text-red-500">{message}</p>}
+            {message && <p className="mt-4 text-center text-green-500">{message}</p>}
         </div>
     );
 }
+
+export default Account;
